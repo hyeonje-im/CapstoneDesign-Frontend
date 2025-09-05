@@ -1,98 +1,44 @@
-from kivy.uix.widget import Widget
+
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
+from kivy.uix.widget import Widget
 from kivy.graphics import Color, RoundedRectangle
-from kivy.core.text import LabelBase
 
-# Pretendard-Bold 폰트 등록 (otf 파일은 assets/fonts 안에 있어야 함)
-LabelBase.register(
-    name="Pretendard-Bold",
-    fn_regular="assets/fonts/Pretendard-Bold.otf"
-)
-
-
-class GridVisualizationWidget(Widget):
+class GridVisualizationWidget(BoxLayout):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(orientation='vertical', spacing=0, padding=0, **kwargs)
 
-        self.size_hint = (None, None)
-        self.size = (450, 390)
-        
-
-        # 바깥 배경
         with self.canvas.before:
-            Color(0xD2 / 255, 0xDA / 255, 0xFF / 255, 1)  # #D2DAFF
-            self.bg_rect = RoundedRectangle(
-                pos=self.pos,
-                size=self.size,
-                radius=[(0, 0), (0, 0), (0, 0), (10, 10)]
-            )
+            Color(0.823, 0.855, 1.0, 1)  # D2DAFF 배경
+            self.bg = RoundedRectangle(pos=self.pos, size=self.size)
+        self.bind(pos=self.update_bg, size=self.update_bg)
 
-        self.bind(pos=self._update_rect, size=self._update_rect)
+        # ── 상단 바 ──
+        self.header = BoxLayout(size_hint_y=None, height=30)
+        with self.header.canvas.before:
+            Color(115 / 255, 103 / 255, 239 / 255, 1)
+            self.header_bg = RoundedRectangle(pos=self.header.pos, size=self.header.size, radius=[7, 7, 0, 0])
+        self.header.bind(pos=self.update_header, size=self.update_header)
+        self.header.add_widget(Label(text="Grid Visualization", bold=True, color=(1, 1, 1, 1)))
 
-        self._add_inner_white_box()
+        # ── 아래  공간 ──
+        self.grid_area = Widget()
+        with self.grid_area.canvas.before:
+            Color(37 / 255, 40 / 255, 59 / 255, 1)
+            self.grid_bg = RoundedRectangle(pos=self.grid_area.pos, size=self.grid_area.size, radius=[0, 0, 7, 7])
+        self.grid_area.bind(pos=self.update_grid_bg, size=self.update_grid_bg)
 
-    def _update_rect(self, *args):
-        self.bg_rect.pos = self.pos
-        self.bg_rect.size = self.size
-        if hasattr(self, "inner_box"):
-            self._update_inner_box()
+        self.add_widget(self.header)
+        self.add_widget(self.grid_area)
 
-    def _add_inner_white_box(self):
-        self.inner_box = Widget(size_hint=(None, None))
-        self.inner_box.size = (430, 370)
+    def update_bg(self, *args):
+        self.bg.pos = self.pos
+        self.bg.size = self.size
 
-        with self.inner_box.canvas.before:
-            Color(1, 1, 1, 1)  # 흰색 배경
-            self.inner_rect = RoundedRectangle(
-                pos=self.inner_box.pos,
-                size=self.inner_box.size,
-                radius=[(10, 10), (10, 10), (10, 10), (10, 10)]
-            )
+    def update_header(self, *args):
+        self.header_bg.pos = self.header.pos
+        self.header_bg.size = self.header.size
 
-        self.inner_box.bind(pos=self._update_inner_box, size=self._update_inner_box)
-        self.add_widget(self.inner_box)
-
-        self._add_title_bar()
-        self._update_inner_box()
-
-    def _update_inner_box(self, *args):
-        parent_x, parent_y = self.pos
-        parent_w, parent_h = self.size
-        inner_w, inner_h = self.inner_box.size
-
-        center_x = parent_x + (parent_w - inner_w) / 2
-        center_y = parent_y + (parent_h - inner_h) / 2
-
-        self.inner_box.pos = (center_x, center_y)
-        self.inner_rect.pos = self.inner_box.pos
-        self.inner_rect.size = self.inner_box.size
-
-        if hasattr(self, "title_bar"):
-            self._update_title_bar()
-
-    def _add_title_bar(self):
-        self.title_bar = Widget(size_hint=(1, None), height=40)
-
-        with self.title_bar.canvas.before:
-            Color(0xAA / 255, 0xC4 / 255, 0xFF / 255, 1)  # #AAC4FF
-            self.title_rect = RoundedRectangle(
-                pos=self.title_bar.pos,
-                size=self.title_bar.size,
-                radius=[(10, 10), (10, 10), (0, 0), (0, 0)]
-            )
-
-        self.title_bar.bind(pos=self._update_title_bar, size=self._update_title_bar)
-
-        
-
-        
-        self.inner_box.add_widget(self.title_bar)
-
-    def _update_title_bar(self, *args):
-        inner_x, inner_y = self.inner_box.pos
-        inner_w, inner_h = self.inner_box.size
-        bar_height = self.title_bar.height
-
-        self.title_bar.pos = (inner_x, inner_y + inner_h - bar_height)
-        self.title_rect.pos = self.title_bar.pos
-        self.title_rect.size = (inner_w, bar_height)
+    def update_grid_bg(self, *args):
+        self.grid_bg.pos = self.grid_area.pos
+        self.grid_bg.size = self.grid_area.size
